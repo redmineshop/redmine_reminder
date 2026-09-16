@@ -1,0 +1,88 @@
+<%= javascript_include_tag 'reminder_form', plugin: 'redmine_reminder' %>
+
+<%= error_messages_for @reminder %>
+
+<div class="box tabular">
+  <p>
+    <%= f.label :content, l(:field_content) %><span class="required"> *</span>
+    <%= f.text_area :content, :rows => 5, :cols => 60, :required => true %>
+    <em class="info"><%= l(:text_google_chat_formatting_supported).html_safe %></em>
+  </p>
+
+  <p>
+    <%= f.label :send_date, l(:field_send_date) %><span class="required"> *</span>
+    <%= f.date_field :send_date, :required => true %>
+  </p>
+
+  <p>
+    <%= f.label :send_time, l(:field_send_time) %><span class="required"> *</span>
+    <% 
+      # Display time in user's timezone
+      time_value = if @reminder.send_time.present?
+        user_tz = @reminder.send(:get_user_timezone)
+        @reminder.send_time.in_time_zone(user_tz).strftime('%H:%M')
+      else
+        nil
+      end
+    %>
+    <%= f.time_field :send_time, :required => true, :value => time_value %>
+  </p>
+
+  <p>
+    <%= f.label :issue_id, l(:field_issue) %>
+    <% if @project.issues.any? %>
+      <%= f.collection_select :issue_id, @project.issues.order(:id), :id, 
+                             :to_s, { include_blank: l(:label_select_issue_placeholder) },
+                             { class: 'issue-select' } %>
+    <% else %>
+      <em><%= l(:label_no_issues_in_project) %></em>
+    <% end %>
+  </p>
+
+  <fieldset class="box">
+    <legend><%= l(:label_recurring_settings) %></legend>
+    
+    <p>
+      <%= f.check_box :is_recurring, class: 'is-recurring-checkbox' %>
+      <%= f.label :is_recurring, l(:field_is_recurring) %>
+    </p>
+
+    <div id="recurring-options" style="<%= 'display: none;' unless @reminder.is_recurring? %>">
+      <p>
+        <%= f.label :recurring_type, l(:field_recurring_type) %>
+        <%= f.select :recurring_type, 
+                     options_for_select(Reminder.recurring_type_options, @reminder.recurring_type),
+                     { include_blank: l(:label_select_recurring_type_placeholder) },
+                     { id: 'recurring_type_select' } %>
+      </p>
+
+      <div id="custom-days-options" style="<%= 'display: none;' unless @reminder.recurring_type == 'custom' %>">
+        <p>
+          <%= f.label :custom_days, l(:field_custom_days) %>
+          <% selected_days = @reminder.custom_days ? @reminder.custom_days.split(',') : [] %>
+          <% Reminder.weekday_options.each do |label, value| %>
+            <label class="inline">
+              <%= check_box_tag "custom_days[]", value, selected_days.include?(value),
+                                { class: 'custom-day-checkbox' } %>
+              <%= label %>
+            </label>
+          <% end %>
+          <%= hidden_field_tag 'reminder[custom_days]', @reminder.custom_days, id: 'hidden_custom_days' %>
+        </p>
+      </div>
+    </div>
+  </fieldset>
+
+  <p>
+    <%= f.check_box :active, checked: @reminder.active? %>
+    <%= f.label :active, l(:field_active) %>
+  </p>
+</div>
+
+<%= content_for :header_tags do %>
+  <style>
+    .inline { display: inline-block; margin-right: 15px; }
+    #recurring-options { margin-left: 20px; }
+    #custom-days-options { margin-left: 20px; background: #f8f8f8; padding: 10px; border-radius: 3px; }
+  </style>
+<% end %> 
