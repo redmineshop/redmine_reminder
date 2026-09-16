@@ -1,0 +1,54 @@
+<div class="contextual">
+  <%= link_to l(:label_reminder_new), new_project_reminder_path(@project), class: 'icon icon-add' %>
+</div>
+
+<h2><%= l(:label_reminder_plural) %></h2>
+
+<% if @reminders.any? %>
+  <div class="autoscroll">
+    <table class="list">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th><%= l(:field_content) %></th>
+          <th><%= l(:field_issue) %></th>
+          <th><%= l(:field_send_time) %></th>
+          <th><%= l(:label_recurring_settings) %></th>
+          <th><%= l(:label_next_send_date) %></th>
+          <th><%= l(:label_status) %></th>
+          <th><%= l(:label_created_by) %></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @reminders.each do |reminder| %>
+          <tr class="reminder <%= cycle('odd', 'even') %>">
+            <td class="id"><%= link_to reminder.id, project_reminder_path(@project, reminder) %></td>
+            <td class="content"><%= reminder.content %></td>
+            <td class="issue"><%= reminder.issue ? link_to(reminder.issue, issue_path(reminder.issue)) : '' %></td>
+            <td class="time"><%= reminder.formatted_send_time %></td>
+            <td class="recurring"><%= reminder.recurring_type_text %></td>
+            <td class="next-date"><%= reminder.is_recurring? ? format_date(reminder.next_send_date) : '' %></td>
+            <td class="status"><%= reminder.active? ? l(:label_status_active) : l(:label_status_inactive) %></td>
+            <td class="author"><%= reminder.created_by.name %></td>
+            <td class="buttons">
+              <%= link_to l(:button_edit), edit_project_reminder_path(@project, reminder), class: 'icon icon-edit' %>
+              <%= link_to l(:button_delete), project_reminder_path(@project, reminder), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>
+
+<%= content_for :header_tags do %>
+  <style>
+    .status-active { color: #169f85; font-weight: bold; }
+    .status-inactive { color: #999; }
+    table.reminders td.subject { font-weight: bold; }
+    table.reminders td.date, table.reminders td.time { white-space: nowrap; }
+  </style>
+<% end %> 
