@@ -1,5 +1,6 @@
 <h2><%= l(:label_reminder_details) %> #<%= @reminder.id %></h2>
 
+<% if User.current.allowed_to?(:manage_reminders, @project) %>
 <div class="contextual">
   <%= link_to l(:button_edit), edit_project_reminder_path(@project, @reminder),
               :class => 'icon icon-edit' %>
@@ -8,6 +9,7 @@
               :data => {:confirm => l(:text_are_you_sure)},
               :class => 'icon icon-del' %>
 </div>
+<% end %>
 
 <div class="box tabular">
   <p>
@@ -48,13 +50,13 @@
   </p>
 
   <p>
-    <label>Ngày tạo:</label>
+    <label><%= l(:field_created_on) %>:</label>
     <%= format_time @reminder.created_at %>
   </p>
 
   <% if @reminder.updated_at != @reminder.created_at %>
   <p>
-    <label>Cập nhật lần cuối:</label>
+    <label><%= l(:field_updated_on) %>:</label>
     <%= format_time @reminder.updated_at %>
   </p>
   <% end %>

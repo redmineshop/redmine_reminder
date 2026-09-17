@@ -3,6 +3,8 @@ ja:
   permission_view_reminders: リマインダーの表示
   permission_manage_reminders: リマインダーの管理
   project_module_reminder: リマインダー
+  project_module_reminders: リマインダー
+  label_reminder: リマインダー
   label_reminder_plural: リマインダー
   label_reminder_new: 新規リマインダー
   label_reminder_edit: リマインダーの編集
