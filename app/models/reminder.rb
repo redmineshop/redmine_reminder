@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Reminder < ActiveRecord::Base
   belongs_to :project
   belongs_to :created_by, class_name: 'User', foreign_key: 'created_by_id'
@@ -8,6 +10,7 @@ class Reminder < ActiveRecord::Base
   validates :send_date, presence: true
   validates :recurring_type, inclusion: { in: %w[daily weekdays weekly custom] }, allow_blank: true
   validate :validate_custom_days
+  validate :issue_must_belong_to_project
 
   scope :active, -> { where(active: true) }
   scope :for_today, -> { where(send_date: Date.current) }
@@ -153,6 +156,13 @@ class Reminder < ActiveRecord::Base
         'Asia/Ho_Chi_Minh'
       end
     end
+  end
+
+  def issue_must_belong_to_project
+    return if issue_id.blank?
+    return if project && project.issues.where(id: issue_id).exists?
+
+    errors.add(:issue_id, :invalid)
   end
 
   def validate_custom_days

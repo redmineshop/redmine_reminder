@@ -1,6 +1,6 @@
 <p>
 	<label for="settings_slack_url"><%= l(:setting_slack_url) %></label>
-	<input type="text" id="settings_slack_url" size=80 value="<%= settings['slack_url'] %>" name="settings[slack_url]" />
+	<%= text_field_tag 'settings[slack_url]', settings['slack_url'], :id => 'settings_slack_url', :size => 80 %>
 </p>
 
 <p>
@@ -9,7 +9,7 @@
 
 <p>
 	<label for="settings_channel"><%= l(:setting_slack_channel) %></label>
-	<input type="text" id="settings_channel" value="<%= settings['channel'] %>" name="settings[channel]" />
+	<%= text_field_tag 'settings[channel]', settings['channel'], :id => 'settings_channel' %>
 </p>
 
 <p>
@@ -18,12 +18,12 @@
 
 <p>
 	<label for="settings_icon"><%= l(:setting_slack_icon) %></label>
-	<input type="text" id="settings_icon" value="<%= settings['icon'] %>" name="settings[icon]" />
+	<%= text_field_tag 'settings[icon]', settings['icon'], :id => 'settings_icon' %>
 </p>
 
 <p>
 	<label for="settings_username"><%= l(:setting_slack_username) %></label>
-	<input type="text" id="settings_username" value="<%= settings['username'] %>" name="settings[username]" />
+	<%= text_field_tag 'settings[username]', settings['username'], :id => 'settings_username' %>
 </p>
 
 <p>
@@ -36,12 +36,14 @@
 
 <p>
 	<label for="settings_post_updates"><%= l(:setting_post_updates) %></label>
-	<input type="checkbox" id="settings_post_updates" value="1" name="settings[post_updates]" <%= 'checked' if settings['post_updates'] == '1' %> />
+	<%= hidden_field_tag 'settings[post_updates]', '0' %>
+	<%= check_box_tag 'settings[post_updates]', '1', settings['post_updates'] == '1', :id => 'settings_post_updates' %>
 </p>
 
 <p>
 	<label for="settings_post_wiki_updates"><%= l(:setting_post_wiki_updates) %></label>
-	<input type="checkbox" id="settings_post_wiki_updates" value="1" name="settings[post_wiki_updates]" <%= 'checked' if settings['post_wiki_updates'] == '1' %> />
+	<%= hidden_field_tag 'settings[post_wiki_updates]', '0' %>
+	<%= check_box_tag 'settings[post_wiki_updates]', '1', settings['post_wiki_updates'] == '1', :id => 'settings_post_wiki_updates' %>
 </p>
 
 <hr />
@@ -51,7 +53,7 @@
 
 <p>
 	<label for="settings_google_chat_webhook_url"><%= l(:setting_google_chat_webhook_url) %></label>
-	<input type="text" id="settings_google_chat_webhook_url" size=80 value="<%= settings['google_chat_webhook_url'] %>" name="settings[google_chat_webhook_url]" />
+	<%= text_field_tag 'settings[google_chat_webhook_url]', settings['google_chat_webhook_url'], :id => 'settings_google_chat_webhook_url', :size => 80 %>
 </p>
 
 <p>
