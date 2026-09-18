@@ -4,6 +4,8 @@
 [![Redmine 5.x/6.x](https://img.shields.io/badge/Redmine-5.x%20%7C%206.x-blue)](https://redmineshop.com/docs/compatibility)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE.md)
 
+**Last maintained:** 2026-09-18
+
 **Source on GitHub:** [github.com/redmineshop/redmine_reminder](https://github.com/redmineshop/redmine_reminder)
 
 Schedule recurring reminders for Redmine projects — delivered as Slack or Google Chat notifications. Set once, send on schedule, link to issues.
@@ -73,25 +75,45 @@ Reminders index on a project (demo Redmine, plugin quality harness):
 
 ![Reminders list](screenshots/reminders-list.png)
 
-Create form and detail view: [screenshots/reminder-new-form.png](screenshots/reminder-new-form.png), [screenshots/reminder-detail.png](screenshots/reminder-detail.png).
+Create form:
 
-Refresh from the RedmineShop monorepo: `./demo/scripts/run-plugin-e2e.sh`.
+![New reminder form](screenshots/reminder-new-form.png)
+
+Detail view:
+
+![Reminder details](screenshots/reminder-detail.png)
+
+Screenshot refresh is a private-monorepo Playwright job (`demo/scripts/run-plugin-e2e.sh`), not something a public clone can run.
 
 ## Tests
 
-This plugin does not yet ship `test/unit` / `test/functional` in-tree. The quality bar for Community plugins is met via the demo harness (E2E), not `ruby -c` alone.
+MiniTest lives under `test/` (unit + functional). Coverage is **partial** — Reminder validations/schedule and `RemindersController` `#index` / `#create` / `#show`. It does **not** yet cover edit/update/destroy, webhook POST, or cron dispatch. Public sibling CI (`.github/workflows/ci.yml`) is Ruby syntax only (`ruby -c`). That is not the quality bar. This plugin is **not** shippable on MiniTest alone.
+
+On a Redmine install that already has this plugin migrated:
+
+```bash
+bundle exec rake redmine:plugins:test NAME=redmine_reminder RAILS_ENV=test
+```
+
+On the private RedmineShop demo stack (monorepo only):
+
+```bash
+PLUGIN_NAME=redmine_reminder ./demo/scripts/run-sso-plugin-tests.sh
+```
 
 ### Quality harness (demo + E2E)
 
+The Playwright E2E harness lives in the **private** RedmineShop monorepo (`docker-compose.demo.yml` + `demo/scripts/run-plugin-e2e.sh`). This public GitHub repo is the plugin only — it does not ship that compose file, and a public clone cannot open monorepo docs such as `docs/plugin-quality-harness.md`. There is no public-safe copy of that harness guide.
+
+Install and smoke this plugin on your own Redmine: [reminder install](https://redmineshop.com/docs/reminder-install).
+
 | Bar | Status |
 | --- | --- |
-| Automated tests beyond `ruby -c` | **Partial** — Playwright E2E verified on demo Redmine; plugin MiniTest `test/` suite not yet added |
-| Installed + enabled on demo Redmine | **Verified** — mounted via `demo/plugins/` on `docker-compose.demo.yml`; `demo/scripts/prepare-demo-harness.sh` migrates + seeds `plugin-qa` with the Reminders module |
+| Automated tests beyond `ruby -c` | **Partial** — `test/unit/reminder_test.rb` + `test/functional/reminders_controller_test.rb` (index/create/show). Not a full MiniTest suite (no webhook POST, cron, or edit/update/destroy) |
+| Installed + enabled on demo Redmine | **Verified** — mounted via `demo/plugins/` on the monorepo demo stack; seed enables the Reminders module on `plugin-qa` |
 | E2E primary happy path | **Verified** — Playwright `demo/e2e/tests/redmine_reminder.spec.js` (open UI, create, view) on the demo stack |
 | UI screenshot in README | **Verified** — `screenshots/{reminder-new-form,reminders-list,reminder-detail}.png` from that spec |
 | Redmine 5.1 / 6.x matrix | **Declared / untested** — this harness is one demo image, not a QA matrix |
-
-How to run: [docs/plugin-quality-harness.md](../../../../docs/plugin-quality-harness.md).
 
 ## License
 
