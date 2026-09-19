@@ -3,8 +3,6 @@ vi:
   permission_view_reminders: Xem nhắc nhở
   permission_manage_reminders: Quản lý nhắc nhở
   project_module_reminder: Nhắc nhở
-  project_module_reminders: Nhắc nhở
-  label_reminder: Nhắc nhở
   label_reminder_plural: Nhắc nhở
   label_reminder_new: Tạo nhắc nhở mới
   label_reminder_edit: Sửa nhắc nhở

@@ -62,7 +62,7 @@
           <% selected_days = @reminder.custom_days ? @reminder.custom_days.split(',') : [] %>
           <% Reminder.weekday_options.each do |label, value| %>
             <label class="inline">
-              <%= check_box_tag "custom_days[]", value, selected_days.include?(value.to_s),
+              <%= check_box_tag "custom_days[]", value, selected_days.include?(value),
                                 { class: 'custom-day-checkbox' } %>
               <%= label %>
             </label>

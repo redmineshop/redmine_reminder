@@ -1,8 +1,6 @@
-<% if User.current.allowed_to?(:manage_reminders, @project) %>
 <div class="contextual">
   <%= link_to l(:label_reminder_new), new_project_reminder_path(@project), class: 'icon icon-add' %>
 </div>
-<% end %>
 
 <h2><%= l(:label_reminder_plural) %></h2>
 
@@ -26,7 +24,7 @@
         <% @reminders.each do |reminder| %>
           <tr class="reminder <%= cycle('odd', 'even') %>">
             <td class="id"><%= link_to reminder.id, project_reminder_path(@project, reminder) %></td>
-            <td class="content"><%= truncate(reminder.content.to_s, length: 140) %></td>
+            <td class="content"><%= reminder.content %></td>
             <td class="issue"><%= reminder.issue ? link_to(reminder.issue, issue_path(reminder.issue)) : '' %></td>
             <td class="time"><%= reminder.formatted_send_time %></td>
             <td class="recurring"><%= reminder.recurring_type_text %></td>
@@ -34,10 +32,8 @@
             <td class="status"><%= reminder.active? ? l(:label_status_active) : l(:label_status_inactive) %></td>
             <td class="author"><%= reminder.created_by.name %></td>
             <td class="buttons">
-              <% if User.current.allowed_to?(:manage_reminders, @project) %>
-                <%= link_to l(:button_edit), edit_project_reminder_path(@project, reminder), class: 'icon icon-edit' %>
-                <%= link_to l(:button_delete), project_reminder_path(@project, reminder), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
-              <% end %>
+              <%= link_to l(:button_edit), edit_project_reminder_path(@project, reminder), class: 'icon icon-edit' %>
+              <%= link_to l(:button_delete), project_reminder_path(@project, reminder), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
             </td>
           </tr>
         <% end %>

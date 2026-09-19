@@ -1,12 +1,8 @@
 # Screenshots — Redmine Reminder
 
-Captured by the plugin quality harness (Playwright) against demo Redmine.
+Captured by Playwright against demo Redmine.
 
-Refresh:
-
-```bash
-./demo/scripts/run-plugin-e2e.sh
-```
+Refresh is **private-monorepo only** (`redmineshop/redmineshop` harness). A public clone of this plugin cannot run that job.
 
 Output:
 

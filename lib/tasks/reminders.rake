@@ -91,11 +91,14 @@ namespace :redmine_reminder do
       end
 
       puts "Testing webhook for project: #{project.name}"
-      puts "Webhook host: #{RedmineReminder::WebhookUrl.host_for_log(webhook_url)}"
+      puts "Webhook URL: #{webhook_url}"
       
       test_message = "🧪 Test message from Redmine Reminder plugin\nProject: #{project.name}\nTime: #{Time.current.strftime('%d/%m/%Y %H:%M')}"
       
-      client = RedmineReminder::Http.build_client
+      require 'httpclient'
+      client = HTTPClient.new
+      client.ssl_config.cert_store.set_default_paths
+      client.ssl_config.ssl_version = :auto
       
       response = client.post(webhook_url, { 'text' => test_message }.to_json, 
                             { 'Content-Type' => 'application/json' })
@@ -122,18 +125,10 @@ namespace :redmine_reminder do
   end
 
   def get_test_webhook_url(project)
-    url = RedmineReminder::ProjectWebhooks.google_chat_url(project)
-    return nil unless url
-    return url if RedmineReminder::WebhookUrl.safe?(url)
+    custom_field = CustomField.find_by(name: 'Google Chat Webhook')
+    return nil unless custom_field
 
-    puts "Webhook URL for this project is not a public HTTPS endpoint; refusing to post."
-    nil
-  end
-end
-
-namespace :redmine do
-  namespace :reminders do
-    desc "Process and send scheduled reminders (alias of redmine_reminder:send_reminders)"
-    task send: 'redmine_reminder:send_reminders'
+    custom_value = project.custom_values.find_by(custom_field: custom_field)
+    custom_value&.value
   end
 end 

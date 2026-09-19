@@ -1,13 +1,11 @@
-# frozen_string_literal: true
-
 class RemindersController < ApplicationController
   before_action :find_project, :authorize
   before_action :find_reminder, only: [:show, :edit, :update, :destroy]
 
   def index
     @reminders = @project.reminders.includes(:created_by, :issue)
-                         .order(created_at: :desc)
-
+                        .order(created_at: :desc)
+    
     respond_to do |format|
       format.html
     end
@@ -19,7 +17,8 @@ class RemindersController < ApplicationController
   def new
     @reminder = @project.reminders.build
     @reminder.send_date = Date.current
-
+    
+    # Set default time in user's timezone
     user_tz = get_user_timezone(User.current)
     Time.use_zone(user_tz) do
       @reminder.send_time = Time.zone.now.change(sec: 0).utc
@@ -27,15 +26,27 @@ class RemindersController < ApplicationController
   end
 
   def create
-    @reminder = @project.reminders.build(reminder_params.except(:send_time))
+    @reminder = @project.reminders.build(reminder_params)
     @reminder.created_by = User.current
-    apply_send_time_from_params(@reminder)
+    
+    # Fix timezone issue: convert send_time to UTC properly
+    if params[:reminder][:send_time].present?
+      user_tz = get_user_timezone(User.current)
+      time_string = params[:reminder][:send_time]
+      date_string = params[:reminder][:send_date] || Date.current.to_s
+      
+      # Parse time in user's timezone and convert to UTC for storage
+      Time.use_zone(user_tz) do
+        user_time = Time.zone.parse("#{date_string} #{time_string}")
+        @reminder.send_time = user_time.utc
+      end
+    end
 
     if @reminder.save
       flash[:notice] = l(:notice_reminder_created_successfully)
       redirect_to project_reminders_path(@project)
     else
-      render :new, status: :unprocessable_entity
+      render :new
     end
   end
 
@@ -43,14 +54,26 @@ class RemindersController < ApplicationController
   end
 
   def update
-    attrs = reminder_params
-    attrs = attrs.except(:send_time) if apply_send_time_from_params(@reminder)
-
-    if @reminder.update(attrs)
+    # Fix timezone issue: convert send_time to UTC properly  
+    reminder_params_with_time = if params[:reminder][:send_time].present?
+      user_tz = get_user_timezone(User.current)
+      time_string = params[:reminder][:send_time]
+      date_string = params[:reminder][:send_date] || @reminder.send_date.to_s
+      
+      # Parse time in user's timezone and convert to UTC for storage
+      Time.use_zone(user_tz) do
+        user_time = Time.zone.parse("#{date_string} #{time_string}")
+        reminder_params.merge(send_time: user_time.utc)
+      end
+    else
+      reminder_params
+    end
+    
+    if @reminder.update(reminder_params_with_time)
       flash[:notice] = l(:notice_reminder_updated_successfully)
       redirect_to project_reminders_path(@project)
     else
-      render :edit, status: :unprocessable_entity
+      render :edit
     end
   end
 
@@ -75,44 +98,22 @@ class RemindersController < ApplicationController
   end
 
   def reminder_params
-    permitted = params.require(:reminder).permit(
-      :content, :send_time, :send_date, :is_recurring,
-      :recurring_type, :custom_days, :issue_id, :active
-    )
-    permitted[:issue_id] = nil if permitted[:issue_id].blank?
-    permitted[:issue_id] = nil unless assignable_issue_id?(permitted[:issue_id])
-    permitted
-  end
-
-  def assignable_issue_id?(issue_id)
-    return true if issue_id.blank?
-
-    @project.issues.visible(User.current).where(id: issue_id).exists?
-  end
-
-  def apply_send_time_from_params(reminder)
-    reminder_attrs = params[:reminder]
-    return false unless reminder_attrs && reminder_attrs[:send_time].present?
-
-    user_tz = get_user_timezone(User.current)
-    time_string = reminder_attrs[:send_time]
-    date_string = reminder_attrs[:send_date].presence || reminder.send_date || Date.current
-
-    Time.use_zone(user_tz) do
-      user_time = Time.zone.parse("#{date_string} #{time_string}")
-      reminder.send_time = user_time.utc if user_time
-    end
-    true
+    params.require(:reminder).permit(:content, :send_time, :send_date, :is_recurring, 
+                                   :recurring_type, :custom_days, :issue_id, :active)
   end
 
   def get_user_timezone(user)
+    # Get user's timezone from preferences
     user_tz = user.preference&.time_zone
-
-    if user_tz.present? && user_tz.strip != ''
+    
+    # Check if user has a valid timezone set (not nil, not empty string)
+    if user_tz.present? && user_tz.strip != ""
+      # Map common timezone names to Rails timezone names
       case user_tz.strip
       when 'Hanoi'
         'Asia/Ho_Chi_Minh'
       else
+        # Try to find the timezone in ActiveSupport::TimeZone
         if ActiveSupport::TimeZone[user_tz]
           user_tz
         else
@@ -120,13 +121,16 @@ class RemindersController < ApplicationController
         end
       end
     else
+      # Fallback to Redmine's default users timezone setting
       default_tz = Setting.default_users_time_zone
-
-      if default_tz.present? && default_tz.strip != ''
+      
+      if default_tz.present? && default_tz.strip != ""
+        # Map common timezone names if needed
         case default_tz.strip
         when 'Hanoi'
           'Asia/Ho_Chi_Minh'
         else
+          # Try to find the timezone in ActiveSupport::TimeZone
           if ActiveSupport::TimeZone[default_tz]
             default_tz
           else
@@ -134,8 +138,9 @@ class RemindersController < ApplicationController
           end
         end
       else
+        # Final fallback to Vietnam timezone
         'Asia/Ho_Chi_Minh'
       end
     end
   end
-end
+end 
