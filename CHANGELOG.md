@@ -11,7 +11,7 @@ All notable changes to this plugin. Format follows [Keep a Changelog](https://ke
 
 ### Changed
 
-- README: **Last maintained** 2026-09-18, embed all three harness screenshots, honest MiniTest **Partial** table, and public-safe harness wording (no clickable private-monorepo URLs)
+- README: Last maintained date, screenshots, and MiniTest coverage marked **Partial**. E2E is not in this public repo.
 
 ## [1.0.0] — 2026-07-19
 
