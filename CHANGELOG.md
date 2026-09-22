@@ -9,6 +9,10 @@ All notable changes to this plugin. Format follows [Keep a Changelog](https://ke
 - MiniTest: Reminder validations/schedule (`test/unit/reminder_test.rb`) and RemindersController `#index` / `#create` / `#show` (`test/functional/reminders_controller_test.rb`). Still partial — no webhook POST, cron, or edit/update/destroy coverage.
 - Plugin quality harness notes and README screenshot slots (demo Redmine E2E; not a Redmine version matrix)
 
+### Fixed
+
+- Reminder detail uses locale strings for the created and last-updated labels. Those two labels were hardcoded Vietnamese on every language.
+
 ### Changed
 
 - README: Last maintained date, screenshots, and MiniTest coverage marked **Partial**. E2E is not in this public repo.
