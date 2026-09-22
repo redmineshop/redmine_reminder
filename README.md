@@ -1,13 +1,14 @@
 # Redmine Reminder — Slack & Google Chat Notifications with Scheduled Reminders
 
 [![Community · Free forever](https://img.shields.io/badge/Community-Free%20forever-brightgreen)](https://redmineshop.com/products/redmine-reminder)
-[![Redmine 5.x/6.x](https://img.shields.io/badge/Redmine-5.x%20%7C%206.x-blue)](https://redmineshop.com/docs/compatibility)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE.md)
 [![CI](https://github.com/redmineshop/redmine_reminder/actions/workflows/ci.yml/badge.svg)](https://github.com/redmineshop/redmine_reminder/actions/workflows/ci.yml)
 
-**Last maintained:** 2026-09-18
+**Last maintained:** 2026-09-22
 
 **Source on GitHub:** [github.com/redmineshop/redmine_reminder](https://github.com/redmineshop/redmine_reminder)
+
+Slack and Google Chat reminders for Redmine.
 
 Schedule recurring reminders for Redmine projects — delivered as Slack or Google Chat notifications. Set once, send on schedule, link to issues.
 
@@ -36,15 +37,17 @@ Clone from GitHub, then migrate:
 cd /path/to/redmine/plugins
 git clone https://github.com/redmineshop/redmine_reminder.git
 cd /path/to/redmine
-bundle exec rake redmine:plugins:migrate RAILS_ENV=production
+bundle exec rake redmine:plugins:migrate NAME=redmine_reminder RAILS_ENV=production
 # Restart your Redmine server
 ```
+
+After restart, open **Administration → Plugins** and confirm **Redmine Reminder** is listed.
 
 See the [install guide](https://redmineshop.com/docs/reminder-install) for full instructions.
 
 ## Configuration
 
-1. Admin → Plugins → Redmine Reminder → Configure
+1. **Administration → Plugins → Redmine Reminder → Configure**
 2. Set your Slack or Google Chat webhook URL
 3. Enable the "Reminders" module on each project (Project Settings → Modules)
 
@@ -62,17 +65,19 @@ See [docs/reminder-troubleshooting](https://redmineshop.com/docs/reminder-troubl
 
 ## Compatibility
 
-| Redmine | Ruby | Database | Status |
-|---------|------|----------|--------|
-| 6.x     | 3.2+ | MySQL 8 / PostgreSQL | Targeted — **untested** (no published QA matrix) |
-| 5.1.x   | 3.1+ | MySQL 8 / PostgreSQL | Targeted — **untested** |
-| 5.0.x   | 3.0+ | MySQL 8 / PostgreSQL | Targeted — **untested** |
+Declared follows `requires_redmine version_or_higher: '5.0'` for 5.x and 6.x. Redmine 7.0 is not a claimed target. Tested means a run pinned to that Redmine line. The demo image is official `redmine:latest` (tag not pinned), so a demo boot is not a pass for a specific row.
 
-The plugin declares `requires_redmine version_or_higher: '5.0'`. Do not treat catalog versions as tested cells.
+| Redmine | Declared | Tested |
+|---------|----------|--------|
+| 5.0.x   | Yes      | No — unverified |
+| 5.1.x   | Yes      | No — unverified |
+| 6.0.x   | Yes      | No — unverified |
+| 6.1.x   | Yes      | No — unverified |
+| 7.0.x   | No       | No — unverified |
 
 ## Screenshot
 
-Reminders index on a project (demo Redmine, plugin quality harness):
+Reminders index on a project (demo Redmine):
 
 ![Reminders list](screenshots/reminders-list.png)
 
@@ -84,11 +89,13 @@ Detail view:
 
 ![Reminder details](screenshots/reminder-detail.png)
 
-Screenshot refresh lives in the private `redmineshop/redmineshop` harness. A public clone cannot run it.
+Images are from a demo Redmine. The Redmine version in the capture was not recorded. A full-page screenshot is still TODO.
 
 ## Tests
 
-MiniTest lives under `test/` (unit + functional). Coverage is **partial** — Reminder validations/schedule and `RemindersController` `#index` / `#create` / `#show`. It does **not** yet cover edit/update/destroy, webhook POST, or cron dispatch. Public sibling CI (`.github/workflows/ci.yml`) is Ruby syntax only (`ruby -c`). That is not the quality bar. This plugin is **not** shippable on MiniTest alone.
+MiniTest lives under `test/` (unit + functional). Coverage is partial: Reminder validations and schedule, plus `RemindersController` `#index`, `#create`, and `#show`. It does not cover edit, update, destroy, webhook POST, or cron dispatch.
+
+Public GitHub Actions (`.github/workflows/ci.yml`) runs Ruby syntax checks only (`ruby -c`).
 
 On a Redmine install that already has this plugin migrated:
 
@@ -96,25 +103,12 @@ On a Redmine install that already has this plugin migrated:
 bundle exec rake redmine:plugins:test NAME=redmine_reminder RAILS_ENV=test
 ```
 
-On the private `redmineshop/redmineshop` demo stack (not this public clone):
+## Limits
 
-```bash
-PLUGIN_NAME=redmine_reminder ./demo/scripts/run-sso-plugin-tests.sh
-```
-
-### Quality harness (demo + E2E)
-
-E2E lives in the **private** `redmineshop/redmineshop` harness (`docker-compose.demo.yml` + Playwright). This public GitHub repo is the plugin only — it does not ship that compose file, and a public clone cannot open private harness docs.
-
-Install and smoke this plugin on your own Redmine: [reminder install](https://redmineshop.com/docs/reminder-install).
-
-| Bar | Status |
-| --- | --- |
-| Automated tests beyond `ruby -c` | **Partial** — `test/unit/reminder_test.rb` + `test/functional/reminders_controller_test.rb` (index/create/show). Not a full MiniTest suite (no webhook POST, cron, or edit/update/destroy) |
-| Installed + enabled on demo Redmine | **Verified** — mounted via `demo/plugins/` on the private monorepo demo stack; seed enables the Reminders module on `plugin-qa` |
-| E2E primary happy path | **Verified** — Playwright on that private harness (open UI, create, view) |
-| UI screenshot in README | **Verified** — `screenshots/{reminder-new-form,reminders-list,reminder-detail}.png` from that spec |
-| Redmine 5.1 / 6.x matrix | **Declared / untested** — this harness is one demo image, not a QA matrix |
+- Delivery is Slack or Google Chat webhooks. This plugin does not send email reminders.
+- Recurring sends need the cron rake task. Without cron, only the saved schedule exists.
+- MiniTest does not boot Redmine 5.0, 5.1, 6.0, 6.1, or 7.0, and does not call a webhook.
+- Install notes: [reminder install](https://redmineshop.com/docs/reminder-install).
 
 ## License
 
