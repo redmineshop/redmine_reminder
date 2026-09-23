@@ -47,6 +47,8 @@ ja:
   
   label_reminder_details: リマインダー詳細
   label_created_by: 作成者
+  label_created_on: 作成日
+  label_updated_on: 最終更新
   label_recurring_settings: 繰り返し設定
   label_not_recurring: 繰り返しなし
   

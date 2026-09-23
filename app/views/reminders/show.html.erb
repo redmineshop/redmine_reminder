@@ -48,13 +48,13 @@
   </p>
 
   <p>
-    <label>Ngày tạo:</label>
+    <label><%= l(:label_created_on) %>:</label>
     <%= format_time @reminder.created_at %>
   </p>
 
   <% if @reminder.updated_at != @reminder.created_at %>
   <p>
-    <label>Cập nhật lần cuối:</label>
+    <label><%= l(:label_updated_on) %>:</label>
     <%= format_time @reminder.updated_at %>
   </p>
   <% end %>

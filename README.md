@@ -75,21 +75,22 @@ Declared follows `requires_redmine version_or_higher: '5.0'` for 5.x and 6.x. Re
 | 6.1.x   | Yes      | No — unverified |
 | 7.0.x   | No       | No — unverified |
 
-## Screenshot
+## Screenshots
 
-Reminders index on a project (demo Redmine):
+Plugin settings. Webhook URL fields are masked. The channel in the shot is the fake name `#acme-portal` (display only; the harness does not save it).
+
+![Reminder webhook settings](screenshots/reminder-settings.png)
+
+New reminder on the sample project, linked to an issue, set to repeat weekly:
+
+![Issue reminder with weekly recurrence](screenshots/reminder-issue.png)
 
 ![Reminders list](screenshots/reminders-list.png)
 
-Create form:
-
-![New reminder form](screenshots/reminder-new-form.png)
-
-Detail view:
-
 ![Reminder details](screenshots/reminder-detail.png)
 
-Images are from a demo Redmine. The Redmine version in the capture was not recorded. A full-page screenshot is still TODO.
+Screenshot refresh lives in the private `redmineshop/redmineshop` harness. A public clone cannot run it.
+
 
 ## Tests
 

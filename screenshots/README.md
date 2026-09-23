@@ -1,9 +1,14 @@
 # Screenshots — Redmine Reminder
 
-Images from a demo Redmine. The Redmine version in the capture was not recorded. A full-page screenshot is still TODO.
+Captured by Playwright against demo Redmine (viewport 1440×900, deviceScaleFactor 1, full page).
 
-- `reminder-new-form.png` — create form (content, date/time, related issue)
+Refresh is **private-monorepo only** (`redmineshop/redmineshop` harness). A public clone of this plugin cannot run that job.
+
+Output:
+
+- `reminder-settings.png` — plugin settings; Slack / Google Chat webhook fields masked; channel display `#acme-portal` (not saved)
+- `reminder-issue.png` — new reminder tied to a sample issue, repeat set to Weekly (`reminder-new-form.png` is the same image)
 - `reminders-list.png` — project Reminders index after create
-- `reminder-detail.png` — reminder show page
+- `reminder-detail.png` — reminder show page, recurrence visible
 
-These files do not prove a specific Redmine 5.0 / 5.1 / 6.0 / 6.1 / 7.0 cell. See the compatibility table in the README.
+Not produced here: `slack-example.png` (this stack has no Slack client).

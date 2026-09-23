@@ -55,6 +55,8 @@ en:
   # Show page
   label_reminder_details: Reminder Details
   label_created_by: Created by
+  label_created_on: Created
+  label_updated_on: Last updated
   label_recurring_settings: Recurring Settings
   label_not_recurring: Not recurring
   

@@ -47,6 +47,8 @@ vi:
   
   label_reminder_details: Chi tiết Nhắc nhở
   label_created_by: Người tạo
+  label_created_on: Ngày tạo
+  label_updated_on: Cập nhật lần cuối
   label_recurring_settings: Cài đặt lặp lại
   label_not_recurring: Không lặp lại
   
