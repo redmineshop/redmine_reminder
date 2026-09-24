@@ -6,16 +6,18 @@ All notable changes to this plugin. Format follows [Keep a Changelog](https://ke
 
 ### Added
 
-- MiniTest: Reminder validations/schedule (`test/unit/reminder_test.rb`) and RemindersController `#index` / `#create` / `#show` (`test/functional/reminders_controller_test.rb`). Still partial — no webhook POST, cron, or edit/update/destroy coverage.
+- MiniTest: Reminder validations/schedule, RemindersController CRUD (`#index` / `#show` / `#create` / `#edit` / `#update` / `#destroy`), cron dispatch, and Slack / Google Chat webhook POST with `HTTPClient` stubbed (no live webhook).
+- Rake alias `redmine:reminders:send` for `redmine_reminder:send_reminders` (the name printed in the 1.0.0 cron example).
 - Plugin quality harness notes and README screenshot slots (demo Redmine E2E; not a Redmine version matrix)
 
 ### Fixed
 
+- README cron example now calls `redmine_reminder:send_reminders`, which is the task `bin/cron_reminder.sh` already runs.
 - Reminder detail uses locale strings for the created and last-updated labels. Those two labels were hardcoded Vietnamese on every language.
 
 ### Changed
 
-- README: Last maintained date, screenshots, and MiniTest coverage marked **Partial**. E2E is not in this public repo.
+- README: Last maintained date, screenshots, and MiniTest scope. Public CI remains `ruby -c` only. E2E is not in this public repo.
 
 ## [1.0.0] — 2026-07-19
 

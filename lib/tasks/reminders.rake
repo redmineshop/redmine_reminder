@@ -131,4 +131,15 @@ namespace :redmine_reminder do
     custom_value = project.custom_values.find_by(custom_field: custom_field)
     custom_value&.value
   end
+end
+
+# 1.0.0 README told operators to run this name. The task above is the one
+# bin/cron_reminder.sh already calls.
+namespace :redmine do
+  namespace :reminders do
+    desc 'Send scheduled reminders (alias of redmine_reminder:send_reminders)'
+    task send: :environment do
+      Rake::Task['redmine_reminder:send_reminders'].invoke
+    end
+  end
 end 
