@@ -1,3 +1,1 @@
-source 'https://rubygems.org'
-
-gem "httpclient"
+gem 'httpclient', '~> 2.9'
