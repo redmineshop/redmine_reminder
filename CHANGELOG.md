@@ -6,18 +6,24 @@ All notable changes to this plugin. Format follows [Keep a Changelog](https://ke
 
 ### Added
 
-- MiniTest: Reminder validations/schedule, RemindersController CRUD (`#index` / `#show` / `#create` / `#edit` / `#update` / `#destroy`), cron dispatch, and Slack / Google Chat webhook POST with `HTTPClient` stubbed (no live webhook).
-- Rake alias `redmine:reminders:send` for `redmine_reminder:send_reminders` (the name printed in the 1.0.0 cron example).
-- Plugin quality harness notes and README screenshot slots (demo Redmine E2E; not a Redmine version matrix)
+- GitHub Actions boots official Redmine 7.0.1, migrates this plugin, and runs its MiniTest suite (`test/run-redmine-7.0.1.sh`).
+- Tests for webhook HTTP errors and connection failures, CSRF on create/destroy, cross-project and private issue links, plugin-settings access, and webhook URL visibility.
+- MiniTest for reminder schedule selection, RemindersController CRUD, cron dispatch, and stubbed Slack / Google Chat webhook POST.
+- Rake alias `redmine:reminders:send` for `redmine_reminder:send_reminders`.
 
 ### Fixed
 
-- README cron example now calls `redmine_reminder:send_reminders`, which is the task `bin/cron_reminder.sh` already runs.
-- Reminder detail uses locale strings for the created and last-updated labels. Those two labels were hardcoded Vietnamese on every language.
+- Slack and Google Chat webhook URLs are redacted from logs and from `redmine_reminder:test_webhook` output.
+- README cron example calls `redmine_reminder:send_reminders`, the task `bin/cron_reminder.sh` runs.
+- Reminder detail uses locale strings for the created and last-updated labels.
+- Project custom fields named `Slack URL` and `Google Chat Webhook` are saved as administrator-only, so the URL is not rendered to other users.
+- A reminder can link only to an issue in the same project that the current user can see.
+- Reminder index and detail pages show edit and delete only to users who can manage reminders.
+- Custom weekday checkboxes stay checked when a reminder is edited.
 
 ### Changed
 
-- README: Last maintained date, screenshots, and MiniTest scope. Public CI remains `ruby -c` only. E2E is not in this public repo.
+- README compatibility matrix: Redmine 7.0.1 is the verified cell. 5.0–6.1 stay declared and unverified.
 
 ## [1.0.0] — 2026-07-19
 

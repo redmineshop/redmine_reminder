@@ -138,7 +138,11 @@ class ReminderDispatchTest < ActiveSupport::TestCase
 
   def test_process_reminders_swallows_non_success_webhook
     reminder = nil
-    client = RedmineReminder::Test::FakeHttpClient.new(status: 500, body: 'nope')
+    client = RedmineReminder::Test::FakeHttpClient.new(
+      status: 500,
+      body: 'nope https://chat.example.test/SECRETTOKEN'
+    )
+    logs = +''
 
     travel_to Time.utc(2026, 9, 18, 9, 30, 0) do
       reminder = create_reminder!(
@@ -152,13 +156,50 @@ class ReminderDispatchTest < ActiveSupport::TestCase
 
       sent = nil
       with_stubbed_http_client(client) do
-        sent = RedmineReminder::ReminderService.process_reminders
+        logs = capture_logs do
+          sent = RedmineReminder::ReminderService.process_reminders
+        end
       end
       assert_equal 0, sent
     end
 
     assert_equal 1, client.posts.size
     assert_equal Date.new(2026, 9, 18), reminder.reload.send_date
+    assert_not_includes logs, 'SECRETTOKEN'
+    assert_includes logs, '[redacted-url]'
+  end
+
+  def test_process_reminders_swallows_connection_error_without_logging_the_url
+    secret_url = 'https://chat.example.test/spaces/SECRETTOKEN'
+    reminder = nil
+    client = RedmineReminder::Test::FakeHttpClient.new(
+      error: SocketError.new("Failed to open TCP connection to #{secret_url}")
+    )
+    logs = +''
+
+    travel_to Time.utc(2026, 9, 18, 9, 30, 0) do
+      reminder = create_reminder!(
+        content: 'Bad host',
+        send_date: Date.new(2026, 9, 18),
+        send_time: Time.current,
+        is_recurring: true,
+        recurring_type: 'daily'
+      )
+      attach_google_chat_webhook!(@project, secret_url)
+
+      sent = nil
+      with_stubbed_http_client(client) do
+        logs = capture_logs do
+          sent = RedmineReminder::ReminderService.process_reminders
+        end
+      end
+      assert_equal 0, sent
+    end
+
+    assert_equal 1, client.posts.size
+    assert_equal Date.new(2026, 9, 18), reminder.reload.send_date
+    assert_not_includes logs, 'SECRETTOKEN'
+    assert_not_includes logs, secret_url
   end
 
   def test_rake_send_reminders_dispatches_through_service
@@ -203,6 +244,23 @@ class ReminderDispatchTest < ActiveSupport::TestCase
 
     assert_match(/Sent 1 reminders/, output)
     assert_equal 1, client.posts.size
+  end
+
+  def test_rake_test_webhook_does_not_print_the_url
+    load_reminder_rake_tasks!
+    secret_url = 'https://chat.example.test/spaces/SECRETTOKEN'
+    client = RedmineReminder::Test::FakeHttpClient.new
+    output = +''
+
+    attach_google_chat_webhook!(@project, secret_url)
+    with_stubbed_http_client(client) do
+      output = capture_stdout { invoke_webhook_probe(@project.id) }
+    end
+
+    assert_match(/Test message sent successfully/, output)
+    assert_not_includes output, 'SECRETTOKEN'
+    assert_not_includes output, secret_url
+    assert_equal secret_url, client.posts.first[:url]
   end
 
   def test_rake_send_reminders_exits_when_dispatch_raises
@@ -252,6 +310,13 @@ class ReminderDispatchTest < ActiveSupport::TestCase
               Rake::Task.task_defined?('redmine:reminders:send')
 
     load RAKE_FILE
+  end
+
+  def invoke_webhook_probe(project_id)
+    task = Rake::Task['redmine_reminder:test_webhook']
+    task.prerequisites.clear
+    task.reenable
+    task.invoke(project_id.to_s)
   end
 
   def invoke_reminder_task(name)

@@ -113,8 +113,8 @@ class Listener < Redmine::Hook::Listener
 
 		user = page.content.author
 		project_url = "<#{object_url project}|#{escape project}>"
-		page_url = "<#{object_url page}|#{page.title}>"
-		comment = "[#{project_url}] #{page_url} updated by *#{user}*"
+		page_url = "<#{object_url page}|#{escape page.title}>"
+		comment = "[#{project_url}] #{page_url} updated by *#{escape user}*"
 		if page.content.version > 1
 			comment << " [<#{object_url page}/diff?version=#{page.content.version}|difference>]"
 		end
@@ -164,8 +164,7 @@ class Listener < Redmine::Hook::Listener
 				client.ssl_config.ssl_version = :auto
 				client.post_async slack_url, {:payload => params.to_json}
 			rescue Exception => e
-				Rails.logger.warn("cannot connect to #{slack_url}")
-				Rails.logger.warn(e)
+				log_webhook_failure('Slack', e)
 			end
 		end
 
@@ -185,9 +184,13 @@ private
 			client.ssl_config.ssl_version = :auto
 			client.post_async url, {'text': text}.to_json, {'Content-Type' => 'application/json'}
 		rescue Exception => e
-			Rails.logger.warn("cannot connect to #{url}")
-			Rails.logger.warn(e)
+			log_webhook_failure('Google Chat', e)
 		end
+	end
+
+	def log_webhook_failure(service, error)
+		Rails.logger.warn("Redmine Reminder: #{service} webhook request failed")
+		Rails.logger.warn(RedmineReminder::Redaction.redact(error.message))
 	end
 
 	def format_for_google_chat(msg, attachment)

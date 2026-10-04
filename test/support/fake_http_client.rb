@@ -15,9 +15,10 @@ module RedmineReminder
     class FakeHttpClient
       attr_reader :posts
 
-      def initialize(status: 200, body: 'ok')
+      def initialize(status: 200, body: 'ok', error: nil)
         @status = status
         @body = body
+        @error = error
         @posts = []
       end
 
@@ -49,6 +50,8 @@ module RedmineReminder
 
       def record(url, body, headers)
         @posts << { url: url, body: body, headers: headers }
+        raise @error if @error
+
         FakeHttpResponse.new(status: @status, body: @body)
       end
     end

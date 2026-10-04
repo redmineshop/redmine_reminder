@@ -169,6 +169,17 @@ class ReminderTest < ActiveSupport::TestCase
     end
   end
 
+  def test_next_send_date_custom_later_this_week
+    travel_to Time.utc(2026, 9, 16, 10, 0, 0) do
+      reminder = build_reminder(
+        is_recurring: true,
+        recurring_type: 'custom',
+        custom_days: '1,5'
+      )
+      assert_equal Date.new(2026, 9, 18), reminder.next_send_date(UTC)
+    end
+  end
+
   def test_next_send_date_custom_wraps_to_next_week
     travel_to Time.utc(2026, 9, 18, 10, 0, 0) do
       reminder = build_reminder(
@@ -188,6 +199,46 @@ class ReminderTest < ActiveSupport::TestCase
   def test_formatted_send_date
     reminder = build_reminder(send_date: Date.new(2026, 9, 18))
     assert_equal '18/09/2026', reminder.formatted_send_date
+  end
+
+  def test_rejects_issue_from_another_project
+    reminder = build_reminder(issue_id: 4)
+    assert_not reminder.valid?
+    assert reminder.errors[:issue_id].present?
+  end
+
+  def test_allows_visible_issue_in_the_same_project
+    User.current = nil
+    reminder = build_reminder(issue_id: 1)
+    assert reminder.valid?, reminder.errors.full_messages.to_sentence
+  end
+
+  def test_rejects_private_issue_the_current_user_cannot_see
+    Issue.where(id: 1).update_all(is_private: true)
+    User.current = User.find(3)
+    reminder = build_reminder(issue_id: 1)
+    assert_not reminder.valid?
+    assert reminder.errors[:issue_id].present?
+  ensure
+    User.current = nil
+  end
+
+  def test_anonymous_update_keeps_an_existing_private_issue_link
+    reminder = Reminder.create!(
+      project: @project,
+      created_by: @author,
+      content: 'Linked',
+      send_date: Date.new(2026, 9, 18),
+      send_time: Time.utc(2000, 1, 1, 9, 30, 0),
+      issue_id: 1,
+      active: true
+    )
+    Issue.where(id: 1).update_all(is_private: true)
+    User.current = nil
+    reminder.content = 'Still scheduled'
+    assert reminder.valid?, reminder.errors.full_messages.to_sentence
+  ensure
+    User.current = nil
   end
 
   private
