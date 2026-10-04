@@ -1,5 +1,9 @@
+<% can_manage_reminders = User.current.allowed_to?(:manage_reminders, @project) %>
+
 <div class="contextual">
-  <%= link_to l(:label_reminder_new), new_project_reminder_path(@project), class: 'icon icon-add' %>
+  <% if can_manage_reminders %>
+    <%= link_to l(:label_reminder_new), new_project_reminder_path(@project), class: 'icon icon-add' %>
+  <% end %>
 </div>
 
 <h2><%= l(:label_reminder_plural) %></h2>
@@ -32,8 +36,10 @@
             <td class="status"><%= reminder.active? ? l(:label_status_active) : l(:label_status_inactive) %></td>
             <td class="author"><%= reminder.created_by.name %></td>
             <td class="buttons">
-              <%= link_to l(:button_edit), edit_project_reminder_path(@project, reminder), class: 'icon icon-edit' %>
-              <%= link_to l(:button_delete), project_reminder_path(@project, reminder), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
+              <% if can_manage_reminders %>
+                <%= link_to l(:button_edit), edit_project_reminder_path(@project, reminder), class: 'icon icon-edit' %>
+                <%= link_to l(:button_delete), project_reminder_path(@project, reminder), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
+              <% end %>
             </td>
           </tr>
         <% end %>

@@ -3,6 +3,8 @@
 require 'redmine'
 
 require_relative 'lib/redmine_reminder/version'
+require_relative 'lib/redmine_reminder/redaction'
+require_relative 'lib/redmine_reminder/webhook_fields'
 require File.expand_path('../lib/redmine_reminder/listener', __FILE__)
 require File.expand_path('../lib/redmine_reminder/reminder_service', __FILE__)
 
@@ -46,6 +48,10 @@ if Rails.version > '6.0' && Rails.autoloaders.zeitwerk_enabled?
 		unless Project.included_modules.include? RedmineReminder::ProjectPatch
 			Project.send(:include, RedmineReminder::ProjectPatch)
 		end
+		unless ProjectCustomField.included_modules.include?(RedmineReminder::WebhookFieldGuard)
+			ProjectCustomField.include RedmineReminder::WebhookFieldGuard
+		end
+		RedmineReminder::WebhookFields.restrict_existing!
 	end
 else
 	((Rails.version > "5")? ActiveSupport::Reloader : ActionDispatch::Callbacks).to_prepare do
@@ -57,5 +63,9 @@ else
 		unless Project.included_modules.include? RedmineReminder::ProjectPatch
 			Project.send(:include, RedmineReminder::ProjectPatch)
 		end
+		unless ProjectCustomField.included_modules.include?(RedmineReminder::WebhookFieldGuard)
+			ProjectCustomField.include RedmineReminder::WebhookFieldGuard
+		end
+		RedmineReminder::WebhookFields.restrict_existing!
 	end
 end

@@ -8,6 +8,7 @@ class Reminder < ActiveRecord::Base
   validates :send_date, presence: true
   validates :recurring_type, inclusion: { in: %w[daily weekdays weekly custom] }, allow_blank: true
   validate :validate_custom_days
+  validate :linked_issue_is_in_project
 
   scope :active, -> { where(active: true) }
   scope :for_today, -> { where(send_date: Date.current) }
@@ -153,6 +154,24 @@ class Reminder < ActiveRecord::Base
         'Asia/Ho_Chi_Minh'
       end
     end
+  end
+
+  def linked_issue_is_in_project
+    return if issue_id.blank?
+
+    linked = Issue.find_by(id: issue_id)
+    if linked.nil? || project_id.blank? || linked.project_id != project_id
+      errors.add(:issue_id, :invalid)
+      return
+    end
+
+    viewer = User.current
+    return if viewer.nil?
+    # Cron and console saves run as the anonymous user and must still update
+    # an existing reminder without re-checking a link that did not change.
+    return if viewer.anonymous? && !new_record? && !issue_id_changed?
+
+    errors.add(:issue_id, :invalid) unless linked.visible?(viewer)
   end
 
   def validate_custom_days

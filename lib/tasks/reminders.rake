@@ -7,8 +7,8 @@ namespace :redmine_reminder do
       sent_count = RedmineReminder::ReminderService.process_reminders
       puts "Reminder processing completed. Sent #{sent_count} reminders."
     rescue => e
-      puts "Error processing reminders: #{e.message}"
-      puts e.backtrace.join("\n")
+      puts "Error processing reminders: #{RedmineReminder::Redaction.redact(e.message)}"
+      puts RedmineReminder::Redaction.redact(e.backtrace&.join("\n"))
       exit 1
     end
   end
@@ -91,9 +91,8 @@ namespace :redmine_reminder do
       end
 
       puts "Testing webhook for project: #{project.name}"
-      puts "Webhook URL: #{webhook_url}"
-      
-      test_message = "🧪 Test message from Redmine Reminder plugin\nProject: #{project.name}\nTime: #{Time.current.strftime('%d/%m/%Y %H:%M')}"
+
+      test_message = "Test message from Redmine Reminder plugin\nProject: #{project.name}\nTime: #{Time.current.strftime('%d/%m/%Y %H:%M')}"
       
       require 'httpclient'
       client = HTTPClient.new
@@ -104,16 +103,16 @@ namespace :redmine_reminder do
                             { 'Content-Type' => 'application/json' })
       
       if response.status == 200
-        puts "✅ Test message sent successfully!"
+        puts "Test message sent successfully."
       else
-        puts "❌ Failed to send test message. HTTP #{response.status}: #{response.body}"
+        puts "Failed to send test message. HTTP #{response.status}"
       end
-      
+
     rescue ActiveRecord::RecordNotFound
       puts "Project with ID #{args[:project_id]} not found"
       exit 1
     rescue => e
-      puts "Error: #{e.message}"
+      puts "Error: #{RedmineReminder::Redaction.redact(e.message)}"
       exit 1
     end
   end

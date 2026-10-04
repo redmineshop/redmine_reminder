@@ -57,8 +57,8 @@ module RedmineReminder
             update_reminder_next_send_date(reminder, user_timezone)
             
           rescue => e
-            Rails.logger.error "ReminderService: Error sending reminder #{reminder.id}: #{e.message}"
-            Rails.logger.error e.backtrace.join("\n")
+            Rails.logger.error "ReminderService: Error sending reminder #{reminder.id}: #{RedmineReminder::Redaction.redact(e.message)}"
+            Rails.logger.error RedmineReminder::Redaction.redact(e.backtrace&.join("\n"))
           end
         end
       end
@@ -139,7 +139,7 @@ module RedmineReminder
         end
         
       rescue => e
-        Rails.logger.error "ReminderService: Failed to send to Google Chat: #{e.message}"
+        Rails.logger.error "ReminderService: Failed to send to Google Chat: #{RedmineReminder::Redaction.redact(e.message)}"
         raise e
       end
     end
