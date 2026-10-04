@@ -10,7 +10,12 @@ unless Issue.included_modules.include?(RedmineReminder::IssuePatch)
   Issue.include RedmineReminder::IssuePatch
 end
 
+unless ProjectCustomField.included_modules.include?(RedmineReminder::WebhookFieldGuard)
+  ProjectCustomField.include RedmineReminder::WebhookFieldGuard
+end
+
 require 'stringio'
+require 'logger'
 require File.expand_path('support/fake_http_client', __dir__)
 
 # Minitest's Object#stub is not available on the demo image's Ruby.
@@ -40,4 +45,18 @@ def capture_stdout
   $stdout.string
 ensure
   $stdout = original
+end
+
+def capture_logs
+  original = Rails.logger
+  buffer = StringIO.new
+  logger = Logger.new(buffer)
+  # Ignore SQL debug lines. Webhook values can appear there because they are
+  # stored on the project; this helper only keeps warning and error output.
+  logger.level = Logger::WARN
+  Rails.logger = logger
+  yield
+  buffer.string
+ensure
+  Rails.logger = original
 end

@@ -83,6 +83,61 @@ class ReminderListenerTest < ActiveSupport::TestCase
     assert_includes payload['text'], @project.name
   end
 
+  def test_new_issue_hook_escapes_html_in_the_subject
+    @issue.subject = '<script>alert(1)</script>'
+    client = RedmineReminder::Test::FakeHttpClient.new
+
+    with_stubbed_http_client(client) do
+      RedmineReminder::Listener.instance.redmine_reminder_issues_new_after_save(issue: @issue)
+    end
+
+    payload = JSON.parse(client.posts.first[:body][:payload])
+    assert_includes payload['text'], '&lt;script&gt;alert(1)&lt;/script&gt;'
+    assert_not_includes payload['text'], '<script>'
+  end
+
+  def test_speak_connection_error_does_not_log_the_webhook_url
+    secret_url = 'https://hooks.example.test/services/SECRETTOKEN'
+    client = RedmineReminder::Test::FakeHttpClient.new(
+      error: SocketError.new("Failed to open TCP connection to #{secret_url}")
+    )
+    logs = +''
+
+    with_stubbed_http_client(client) do
+      logs = capture_logs do
+        RedmineReminder::Listener.instance.speak('hello', '#ops', nil, secret_url)
+      end
+    end
+
+    assert_equal 1, client.posts.size
+    assert_not_includes logs, 'SECRETTOKEN'
+    assert_not_includes logs, secret_url
+    assert_includes logs, 'Slack webhook request failed'
+  end
+
+  def test_google_chat_connection_error_does_not_log_the_webhook_url
+    secret_url = 'https://chat.example.test/spaces/SECRETTOKEN'
+    attach_google_chat_webhook!(@project, secret_url)
+    Setting.plugin_redmine_reminder = Setting.plugin_redmine_reminder.merge(
+      'slack_url' => '',
+      'channel' => ''
+    )
+    client = RedmineReminder::Test::FakeHttpClient.new(
+      error: SocketError.new("Failed to open TCP connection to #{secret_url}")
+    )
+    logs = +''
+
+    with_stubbed_http_client(client) do
+      logs = capture_logs do
+        RedmineReminder::Listener.instance.speak('hello', nil, nil, nil, @project)
+      end
+    end
+
+    assert_equal [secret_url], client.posts.map { |post| post[:url] }
+    assert_not_includes logs, 'SECRETTOKEN'
+    assert_includes logs, 'Google Chat webhook request failed'
+  end
+
   def test_new_issue_hook_skips_private_issue
     @issue.is_private = true
     client = RedmineReminder::Test::FakeHttpClient.new
